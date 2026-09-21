@@ -57,6 +57,8 @@ html {
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    /* Offset anchor jumps so sections don't hide behind fixed header */
+    scroll-padding-top: 100px;
 }
 
 body {
@@ -116,10 +118,13 @@ img { max-width: 100%; height: auto; display: block; }
    ========================================================================== */
 .reveal-on-scroll {
     opacity: 0;
-    transform: translateY(28px);
-    transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+    transform: translateY(20px);
+    transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
 }
-.reveal-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+.reveal-on-scroll.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
 
 .reveal-item {
     opacity: 0;
@@ -259,6 +264,7 @@ img { max-width: 100%; height: auto; display: block; }
     position: relative;
     padding: 0.5rem 0;
     text-transform: uppercase;
+    transition: color 0.25s var(--ease-out);
 }
 
 .nav-link::after {
@@ -272,8 +278,15 @@ img { max-width: 100%; height: auto; display: block; }
     transition: width 0.35s var(--ease-out);
 }
 
-.nav-link:hover, .nav-link.active { color: var(--color-navy); }
-.nav-link:hover::after, .nav-link.active::after { width: 100%; }
+.nav-link:hover,
+.nav-link.active {
+    color: var(--color-navy);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+    width: 100%;
+}
 
 .header-actions { display: flex; align-items: center; gap: 1rem; }
 
@@ -731,14 +744,11 @@ img { max-width: 100%; height: auto; display: block; }
     height: 100%;
     object-fit: cover;
     opacity: 0;
-    transition: opacity 0.9s var(--ease-soft), transform 6s linear;
-    transform: scale(1);
-    will-change: opacity, transform;
+    transition: opacity 0.9s var(--ease-soft);
 }
 
 .slideshow-track img.active {
     opacity: 1;
-    transform: scale(1.06);
 }
 
 .slideshow-track.img-missing::before {
@@ -956,7 +966,6 @@ img { max-width: 100%; height: auto; display: block; }
 }
 
 .project-card.hide { display: none; }
-.project-card.hidden-initially { display: none; }
 
 .project-card:hover { transform: translateY(-6px); border-color: var(--color-border-accent); box-shadow: 0 24px 48px rgba(12, 27, 54, 0.10); }
 
@@ -1360,65 +1369,4 @@ img { max-width: 100%; height: auto; display: block; }
     .form-row { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr; }
     .footer-bottom { justify-content: center; text-align: center; }
-}
-
-/* ==========================================================================
-   PERFORMANCE PATCH
-   ========================================================================== */
-
-/* Isolate layout recalc to each card */
-.project-card,
-.service-card,
-.team-card,
-.why-card,
-.info-card,
-.action-card {
-    contain: layout style paint;
-}
-
-/* GPU-promote animated elements only */
-.hero-media,
-.floating-badge,
-.modal-content {
-    transform: translateZ(0);
-}
-
-/* Trim transitions to only animated properties */
-.project-card,
-.service-card,
-.team-card,
-.why-card,
-.info-card,
-.trust-item,
-.diff-card {
-    transition: transform 0.25s var(--ease-out),
-                border-color 0.25s var(--ease-out),
-                box-shadow 0.25s var(--ease-out);
-}
-
-/* Snappier reveal */
-.reveal-on-scroll {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
-    will-change: transform, opacity;
-}
-.reveal-on-scroll.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-    will-change: auto;
-}
-
-/* Skip rendering for off-screen sections */
-.projects-section,
-.services-section,
-.why-us-section,
-.contact-section {
-    content-visibility: auto;
-    contain-intrinsic-size: 1px 1200px;
-}
-
-/* Smooth scroll fallback for touch */
-@media (prefers-reduced-motion: no-preference) {
-    html { scroll-behavior: smooth; }
 }

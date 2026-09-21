@@ -258,11 +258,10 @@ document.addEventListener('DOMContentLoaded', () => {
         applyVisibility();
     });
 
-    // Initial render
     applyVisibility();
 
     /* ============================================================
-       9. MODAL — delegated listener on grid
+       9. MODAL — delegated listener
        ============================================================ */
     const modal = document.getElementById('projectModal');
     const modalBackdrop = document.getElementById('modalBackdrop');
@@ -366,21 +365,18 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
 
     /* ============================================================
-    13. ACTIVE NAV LINK ON SCROLL (Scroll Spy)
-    ============================================================ */
+       13. ACTIVE NAV LINK ON SCROLL (Scroll Spy)
+       ============================================================ */
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('.nav-link');
 
-    // Probe line: measures from the top of the viewport.
-    // Should sit just below the fixed header (~84px) + a buffer.
-    const NAV_PROBE_Y = 140;
+    // Probe line — measures from top of viewport, sits below fixed header
+    const NAV_PROBE_Y = 120;
 
     function updateActiveNav() {
-        let currentId = 'hero';
+        let currentId = sections.length ? sections[0].id : '';
 
-        // Loop through sections and find the one whose bounding box
-        // contains our probe line. getBoundingClientRect() is always
-        // viewport-relative so it doesn't care about offset parents.
+        // Find the section whose bounding box contains the probe line
         for (let i = 0; i < sections.length; i++) {
             const rect = sections[i].getBoundingClientRect();
             if (rect.top <= NAV_PROBE_Y && rect.bottom > NAV_PROBE_Y) {
@@ -389,22 +385,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Special case: if we hit the very bottom of the page, force "contact"
-        const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
-        if (atBottom) {
-            currentId = 'contact';
+        // At the very bottom of the page, force the last section active
+        const atBottom = (window.innerHeight + window.scrollY) >= (document.documentElement.scrollHeight - 4);
+        if (atBottom && sections.length) {
+            currentId = sections[sections.length - 1].id;
         }
 
-        // Apply active class
         navLinks.forEach(link => {
             const href = link.getAttribute('href');
             link.classList.toggle('active', href === `#${currentId}`);
         });
     }
 
-    // Throttle with rAF for smoothness
+    // rAF throttle
     let navTicking = false;
-    function onScrollNav() {
+    function onNavScroll() {
         if (!navTicking) {
             requestAnimationFrame(() => {
                 updateActiveNav();
@@ -414,12 +409,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    window.addEventListener('scroll', onScrollNav, { passive: true });
-    window.addEventListener('resize', onScrollNav, { passive: true });
+    window.addEventListener('scroll', onNavScroll, { passive: true });
+    window.addEventListener('resize', onNavScroll, { passive: true });
     window.addEventListener('load', updateActiveNav);
 
-    // Run once at DOM ready
+    // Run once immediately
     updateActiveNav();
+
+    // Also re-run after a short delay to catch any late layout shifts
+    setTimeout(updateActiveNav, 300);
 
     /* ============================================================
        14. SERVICES IN ACTION — SLIDESHOWS
