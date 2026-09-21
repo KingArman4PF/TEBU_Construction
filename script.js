@@ -365,24 +365,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
 
-    /* ============================================================
-       13. ACTIVE NAV LINK ON SCROLL
-       ============================================================ */
+/* ============================================================
+   13. ACTIVE NAV LINK ON SCROLL (Scroll Spy)
+   ============================================================ */
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('.nav-link');
 
-    const navObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const id = entry.target.id;
-                navLinks.forEach(link => {
-                    link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-                });
+    function updateActiveNav() {
+        // Offset for the fixed header height (84px) + a small buffer
+        const scrollPos = window.scrollY + 120;
+        let currentId = 'hero';
+
+        sections.forEach(section => {
+            const top = section.offsetTop;
+            const bottom = top + section.offsetHeight;
+            if (scrollPos >= top && scrollPos < bottom) {
+                currentId = section.id;
             }
         });
-    }, { threshold: 0.3, rootMargin: '-80px 0px -50% 0px' });
 
-    sections.forEach(section => navObserver.observe(section));
+        // If we've scrolled to the very bottom, force "contact" to active
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 4) {
+            currentId = 'contact';
+        }
+
+        navLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${currentId}`);
+        });
+    }
+
+    // Throttle with requestAnimationFrame for smoothness
+    let navTicking = false;
+    window.addEventListener('scroll', () => {
+        if (!navTicking) {
+            requestAnimationFrame(() => {
+                updateActiveNav();
+                navTicking = false;
+            });
+            navTicking = true;
+        }
+    }, { passive: true });
+
+    // Also update on resize (layout changes)
+    window.addEventListener('resize', updateActiveNav, { passive: true });
+
+    // Run once on load so the correct link is active from the start
+    updateActiveNav();
 
     /* ============================================================
        14. SERVICES IN ACTION — SLIDESHOWS
