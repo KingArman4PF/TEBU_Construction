@@ -365,38 +365,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.reveal-on-scroll').forEach(el => revealObserver.observe(el));
 
-/* ============================================================
-   13. ACTIVE NAV LINK ON SCROLL (Scroll Spy)
-   ============================================================ */
+    /* ============================================================
+    13. ACTIVE NAV LINK ON SCROLL (Scroll Spy)
+    ============================================================ */
     const sections = document.querySelectorAll('section[id]');
     const navLinks = document.querySelectorAll('.nav-link');
 
+    // Probe line: measures from the top of the viewport.
+    // Should sit just below the fixed header (~84px) + a buffer.
+    const NAV_PROBE_Y = 140;
+
     function updateActiveNav() {
-        // Offset for the fixed header height (84px) + a small buffer
-        const scrollPos = window.scrollY + 120;
         let currentId = 'hero';
 
-        sections.forEach(section => {
-            const top = section.offsetTop;
-            const bottom = top + section.offsetHeight;
-            if (scrollPos >= top && scrollPos < bottom) {
-                currentId = section.id;
+        // Loop through sections and find the one whose bounding box
+        // contains our probe line. getBoundingClientRect() is always
+        // viewport-relative so it doesn't care about offset parents.
+        for (let i = 0; i < sections.length; i++) {
+            const rect = sections[i].getBoundingClientRect();
+            if (rect.top <= NAV_PROBE_Y && rect.bottom > NAV_PROBE_Y) {
+                currentId = sections[i].id;
+                break;
             }
-        });
+        }
 
-        // If we've scrolled to the very bottom, force "contact" to active
-        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 4) {
+        // Special case: if we hit the very bottom of the page, force "contact"
+        const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+        if (atBottom) {
             currentId = 'contact';
         }
 
+        // Apply active class
         navLinks.forEach(link => {
-            link.classList.toggle('active', link.getAttribute('href') === `#${currentId}`);
+            const href = link.getAttribute('href');
+            link.classList.toggle('active', href === `#${currentId}`);
         });
     }
 
-    // Throttle with requestAnimationFrame for smoothness
+    // Throttle with rAF for smoothness
     let navTicking = false;
-    window.addEventListener('scroll', () => {
+    function onScrollNav() {
         if (!navTicking) {
             requestAnimationFrame(() => {
                 updateActiveNav();
@@ -404,12 +412,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             navTicking = true;
         }
-    }, { passive: true });
+    }
 
-    // Also update on resize (layout changes)
-    window.addEventListener('resize', updateActiveNav, { passive: true });
+    window.addEventListener('scroll', onScrollNav, { passive: true });
+    window.addEventListener('resize', onScrollNav, { passive: true });
+    window.addEventListener('load', updateActiveNav);
 
-    // Run once on load so the correct link is active from the start
+    // Run once at DOM ready
     updateActiveNav();
 
     /* ============================================================
